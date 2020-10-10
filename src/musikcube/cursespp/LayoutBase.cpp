@@ -277,6 +277,15 @@ bool LayoutBase::SetFocus(IWindowPtr focus) {
 IWindowPtr LayoutBase::FocusNext() {
     sigslot::signal1<FocusDirection>* notify = nullptr;
 
+    auto currentFocus = this->GetFocus();
+    auto currentFocusLayout = dynamic_cast<LayoutBase*>(currentFocus.get());
+    if (currentFocusLayout) {
+        auto nextFocus = currentFocusLayout->FocusNext();
+        if (currentFocus != nextFocus) {
+            return nextFocus;
+        }
+    }
+
     if (this->focused == NO_FOCUS && this->focusMode == FocusModeTerminating) {
         /* nothing. we're already terminated. */
         notify = &FocusTerminated;
