@@ -78,10 +78,43 @@ LayoutBase::~LayoutBase() {
     }
 }
 
+void LayoutBase::Focus() {
+    Window::Focus();
+    this->FocusFirst();
+}
+
 IWindowPtr LayoutBase::EnsureValidFocus() {
     auto newFocus = this->GetFocus();
     if (newFocus && this->IsVisible()) {
         newFocus->Focus();
+    }
+    return newFocus;
+}
+
+IWindowPtr LayoutBase::EnsureValidFocusFromNext() {
+    auto newFocus = this->GetFocus();
+    if (newFocus && this->IsVisible()) {
+        LayoutBase* layout = dynamic_cast<LayoutBase*>(newFocus.get());
+        if (layout) {
+            layout->FocusFirst();
+        }
+        else {
+            newFocus->Focus();
+        }
+    }
+    return newFocus;
+}
+
+IWindowPtr LayoutBase::EnsureValidFocusFromPrev() {
+    auto newFocus = this->GetFocus();
+    if (newFocus && this->IsVisible()) {
+        LayoutBase* layout = dynamic_cast<LayoutBase*>(newFocus.get());
+        if (layout) {
+            layout->FocusLast();
+        }
+        else {
+            newFocus->Focus();
+        }
     }
     return newFocus;
 }
@@ -277,11 +310,16 @@ bool LayoutBase::SetFocus(IWindowPtr focus) {
 IWindowPtr LayoutBase::FocusNext() {
     sigslot::signal1<FocusDirection>* notify = nullptr;
 
+    /* if OUR current focus is a layout, tell it to focus its next child.
+    if it returns null, then we focus our next child. */
     auto currentFocus = this->GetFocus();
     auto currentFocusLayout = dynamic_cast<LayoutBase*>(currentFocus.get());
     if (currentFocusLayout) {
         auto nextFocus = currentFocusLayout->FocusNext();
-        if (currentFocus != nextFocus) {
+        if (nextFocus) {
+            if (notify) {
+                (*notify)(FocusForward);
+            }
             return nextFocus;
         }
     }
@@ -304,7 +342,7 @@ IWindowPtr LayoutBase::FocusNext() {
         }
     }
 
-    this->EnsureValidFocus();
+    this->EnsureValidFocusFromNext();
 
     if (notify) {
         (*notify)(FocusForward);
@@ -315,6 +353,20 @@ IWindowPtr LayoutBase::FocusNext() {
 
 IWindowPtr LayoutBase::FocusPrev() {
     sigslot::signal1<FocusDirection>* notify = nullptr;
+
+    /* if OUR current focus is a layout, tell it to focus its prev child.
+    if it returns null, then we focus our prev child. */
+    auto currentFocus = this->GetFocus();
+    auto currentFocusLayout = dynamic_cast<LayoutBase*>(currentFocus.get());
+    if (currentFocusLayout) {
+        auto prevFocus = currentFocusLayout->FocusPrev();
+        if (prevFocus) {
+            if (notify) {
+                (*notify)(FocusBackward);
+            }
+            return prevFocus;
+        }
+    }
 
     --this->focused;
     if (this->focused < 0) {
@@ -328,7 +380,7 @@ IWindowPtr LayoutBase::FocusPrev() {
         }
     }
 
-    this->EnsureValidFocus();
+    this->EnsureValidFocusFromPrev();
 
     if (notify) {
         (*notify)(FocusBackward);

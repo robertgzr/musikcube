@@ -57,9 +57,6 @@ namespace musik { namespace cube {
 
             virtual void OnVisibilityChanged(bool visible);
             virtual bool KeyPress(const std::string& key);
-            virtual void Focus();
-
-            virtual cursespp::IWindowPtr FocusNext() override;
 
             void ToggleShowDotFiles();
 

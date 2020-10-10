@@ -90,11 +90,6 @@ void LocalLibrarySettingsLayout::OnLayout() {
     this->addedPathsList->MoveAndResize(rightX, 0, rightWidth, pathsHeight);
 }
 
-void LocalLibrarySettingsLayout::Focus() {
-    LayoutBase::Focus();
-    this->FocusFirst();
-}
-
 void LocalLibrarySettingsLayout::RefreshAddedPaths() {
     this->addedPathsAdapter->Clear();
 
@@ -125,10 +120,6 @@ Color LocalLibrarySettingsLayout::ListItemDecorator(
          }
     }
     return Color::Default;
-}
-
-cursespp::IWindowPtr LocalLibrarySettingsLayout::FocusNext() {
-    return LayoutBase::FocusNext();
 }
 
 void LocalLibrarySettingsLayout::InitializeWindows() {
