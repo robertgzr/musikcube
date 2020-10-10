@@ -518,7 +518,7 @@ void App::UpdateFocusedWindow(IWindowPtr window) {
         this->state.keyHandler = dynamic_cast<IKeyHandler*>(window.get());
 
         if (this->state.focused) {
-            //this->state.focused->Focus();
+            this->state.focused->Focus();
         }
     }
 }
