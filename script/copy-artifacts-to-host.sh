@@ -10,10 +10,8 @@ if [[ -z "${MUSIKCUBE_BUILD_HOST_PW}" ]]; then
     exit
 fi
 
-echo sshpass -p ${MUSIKCUBE_BUILD_HOST_PW} scp "$1/*" build@${MUSIKCUBE_BUILD_HOST_IP}:/home/build/ 2> /dev/null
+# echo sshpass -p ${MUSIKCUBE_BUILD_HOST_PW} scp "$1/*" build@${MUSIKCUBE_BUILD_HOST_IP}:/home/build/ 2> /dev/null
+# sshpass -p ${MUSIKCUBE_BUILD_HOST_PW} scp -o StrictHostKeyChecking=no "$1/*" build@${MUSIKCUBE_BUILD_HOST_IP}:/home/build/ 2> /dev/null
 
-ping -c 5 192.168.1.218
-ping -c 5 ${MUSIKCUBE_BUILD_HOST_IP} 
-traceroute 192.168.1.218
-
-sshpass -p ${MUSIKCUBE_BUILD_HOST_PW} scp "$1/*" build@${MUSIKCUBE_BUILD_HOST_IP}:/home/build/ 2> /dev/null
+touch foo.bar.baz
+sshpass -p ${MUSIKCUBE_BUILD_HOST_PW} scp -o StrictHostKeyChecking=no foo.bar.baz build@${MUSIKCUBE_BUILD_HOST_IP}:/home/build/ 2> /dev/null
