@@ -10,8 +10,8 @@ jobs:
       - run: cmake -DGENERATE_DEB=1 -DDEB_ARCHITECTURE=amd64 -DDEB_PLATFORM=ubuntu -DDEB_DISTRO=bionic -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Release .
       - run: make -j2
       - run: make package
+      - run: ./script/copy-artifacts-to-host.sh /root/project/*.deb
       - run: mkdir -p /root/debs && mv /root/project/*.deb /root/debs/
-      - run: ./script/copy-artifacts-to-host.sh /root/debs
       - store_artifacts:
           path: /root/debs/
   build_ubuntu_focal:
