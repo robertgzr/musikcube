@@ -11,5 +11,7 @@ if [[ -z "${MUSIKCUBE_BUILD_HOST_PW}" ]]; then
 fi
 
 echo "copying build artifacts to host..."
+echo "  from: ${1}"
+ls -al "$1/*"
 sshpass -p ${MUSIKCUBE_BUILD_HOST_PW} scp -o StrictHostKeyChecking=no "$1/*" build@${MUSIKCUBE_BUILD_HOST_IP}:/home/build/ 2> /dev/null
 echo "finished copying build artifacts."
