@@ -195,6 +195,8 @@ int intrflush(WINDOW *win, bool bf)
 {
     PDC_LOG(("intrflush() - called\n"));
 
+    INTENTIONALLY_UNUSED_PARAMETER( win);
+    INTENTIONALLY_UNUSED_PARAMETER( bf);
     return OK;
 }
 
@@ -202,6 +204,7 @@ int keypad(WINDOW *win, bool bf)
 {
     PDC_LOG(("keypad() - called\n"));
 
+    assert( win);
     if (!win)
         return ERR;
 
@@ -214,6 +217,7 @@ int meta(WINDOW *win, bool bf)
 {
     PDC_LOG(("meta() - called\n"));
 
+    INTENTIONALLY_UNUSED_PARAMETER( win);
     assert( SP);
     if (!SP)
         return ERR;
@@ -253,6 +257,7 @@ int nodelay(WINDOW *win, bool flag)
 {
     PDC_LOG(("nodelay() - called\n"));
 
+    assert( win);
     if (!win)
         return ERR;
 
@@ -265,6 +270,8 @@ int notimeout(WINDOW *win, bool flag)
 {
     PDC_LOG(("notimeout() - called\n"));
 
+    INTENTIONALLY_UNUSED_PARAMETER( win);
+    INTENTIONALLY_UNUSED_PARAMETER( flag);
     return OK;
 }
 
@@ -308,6 +315,7 @@ void qiflush(void)
 
 int typeahead(int fildes)
 {
+    INTENTIONALLY_UNUSED_PARAMETER( fildes);
     PDC_LOG(("typeahead() - called\n"));
 
     return OK;
@@ -317,6 +325,7 @@ void wtimeout(WINDOW *win, int delay)
 {
     PDC_LOG(("wtimeout() - called\n"));
 
+    assert( win);
     if (!win)
         return;
 
@@ -372,6 +381,7 @@ bool is_keypad(const WINDOW *win)
 {
     PDC_LOG(("is_keypad() - called\n"));
 
+    assert( win);
     if (!win)
         return FALSE;
 

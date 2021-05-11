@@ -30,10 +30,10 @@ Defined by this header:
 #define PDCURSES        1
 #define PDC_BUILD (PDC_VER_MAJOR*1000 + PDC_VER_MINOR *100 + PDC_VER_CHANGE)
 #define PDC_VER_MAJOR    4
-#define PDC_VER_MINOR    1
-#define PDC_VER_CHANGE   99
-#define PDC_VER_YEAR   2020
-#define PDC_VER_MONTH    05
+#define PDC_VER_MINOR    2
+#define PDC_VER_CHANGE   3
+#define PDC_VER_YEAR   2021
+#define PDC_VER_MONTH    04
 #define PDC_VER_DAY      20
 
 #define PDC_STRINGIZE( x) #x
@@ -42,6 +42,10 @@ Defined by this header:
 #define PDC_VERDOT PDC_stringize( PDC_VER_MAJOR) "." \
                    PDC_stringize( PDC_VER_MINOR) "." \
                    PDC_stringize( PDC_VER_CHANGE)
+
+#define PDC_VER_YMD PDC_stringize( PDC_VER_YEAR) "-" \
+                    PDC_stringize( PDC_VER_MONTH) "-" \
+                    PDC_stringize( PDC_VER_DAY)
 
 #define CHTYPE_LONG     1      /* chtype >= 32 bits */
 
@@ -104,7 +108,7 @@ extern "C"
 #if !defined(PDC_PP98) && !defined(__bool_true_false_are_defined)
 typedef unsigned char bool;
 #endif
-   
+
 #if defined( CHTYPE_32)
    #if defined( CHTYPE_64)
        #error CHTYPE cannot be both CHTYPE_32 and CHTYPE_64
@@ -140,7 +144,8 @@ enum PDC_port
     PDC_PORT_SDL1 = 5,
     PDC_PORT_SDL2 = 6,
     PDC_PORT_VT = 7,
-    PDC_PORT_DOSVGA = 8
+    PDC_PORT_DOSVGA = 8,
+   PDC_PORT_PLAN9 = 9
 };
 
 /* Use this structure with PDC_get_version() for run-time info about the
@@ -470,19 +475,20 @@ indicator.
    By default,  a 64-bit chtype is used :
 
 -------------------------------------------------------------------------------
-|63|62|61|60|59|..|34|33|32|31|30|29|28|..|22|21|20|19|18|17|16|..| 3| 2| 1| 0|
+|63|62|..|53|52|..|34|33|32|31|30|29|28|..|22|21|20|19|18|17|16|..| 3| 2| 1| 0|
 -------------------------------------------------------------------------------
-         color number   |        modifiers      |         character eg 'a'
+  unused    |color pair |        modifiers      |         character eg 'a'
 
    We take five more bits for the character (thus allowing Unicode values
 past 64K;  the full range of Unicode goes up to 0x10ffff,  requiring 21 bits
 total),  and four more bits for attributes.  Three are currently used as
 A_OVERLINE, A_DIM, and A_STRIKEOUT;  one more is reserved for future use.
-On some platforms,  bits 33-40 are used to select a color pair (can run from
-0 to 255). Bits 41 and 42 have been added to this to get 1024 color pairs.
-On some platforms (as of 2020 May 17,  WinGUI and VT),  bits 33-52 are used,
-allowing 2^20 = 1048576 color pairs.  That should be enough for anybody, and
-leaves twelve bits for other uses.
+Bits 33-52 are used to specify a color pair.  In theory,  there can be
+2^20 = 1048576 color pairs;  as of 2021 Apr 20,  only WinGUI,  VT and X11
+have COLOR_PAIRS = 1048576.  Other platforms may join them,  but some
+(DOS,  OS/2) simply do not have full-color capability.
+
+   Bits 53-63 are currently unused.
 
 **man-end****************************************************************/
 
@@ -504,13 +510,8 @@ leaves twelve bits for other uses.
     # define A_OVERLINE   ((chtype)0x100 << PDC_CHARTEXT_BITS)
     # define A_STRIKEOUT  ((chtype)0x200 << PDC_CHARTEXT_BITS)
     # define A_DIM        ((chtype)0x400 << PDC_CHARTEXT_BITS)
-#if 0
-                  /* May come up with a use for this bit    */
-                  /* someday; reserved for the future: */
-    # define A_FUTURE_2   ((chtype)0x800 << PDC_CHARTEXT_BITS)
-#endif
     # define PDC_COLOR_SHIFT (PDC_CHARTEXT_BITS + 12)
-    # define A_COLOR      ((chtype)0x7fffffff << PDC_COLOR_SHIFT)
+    # define A_COLOR      ((chtype)0xfffff << PDC_COLOR_SHIFT)
     # define A_ATTRIBUTES (((chtype)0xfff << PDC_CHARTEXT_BITS) | A_COLOR)
 # else         /* plain ol' 32-bit chtypes */
     # define PDC_CHARTEXT_BITS      16
@@ -1149,117 +1150,44 @@ Some won't work in non-wide X11 builds (see 'acs_defs.h' for details). */
 #define KEY_SUP               (KEY_OFFSET + 0x123) /* Shifted up arrow */
 #define KEY_SDOWN             (KEY_OFFSET + 0x124) /* Shifted down arrow */
 
-         /* The following were added 2011 Sep 14,  and are */
-         /* not returned by most flavors of PDCurses:      */
+         /* The following are not returned on most PDCurses platforms. */
 
-#define CTL_SEMICOLON         (KEY_OFFSET + 0x125)
-#define CTL_EQUAL             (KEY_OFFSET + 0x126)
-#define CTL_COMMA             (KEY_OFFSET + 0x127)
-#define CTL_MINUS             (KEY_OFFSET + 0x128)
-#define CTL_STOP              (KEY_OFFSET + 0x129)
-#define CTL_FSLASH            (KEY_OFFSET + 0x12a)
-#define CTL_BQUOTE            (KEY_OFFSET + 0x12b)
+#define KEY_APPS              (KEY_OFFSET + 0x125)
 
-#define KEY_APPS              (KEY_OFFSET + 0x12c)
-#define KEY_SAPPS             (KEY_OFFSET + 0x12d)
-#define CTL_APPS              (KEY_OFFSET + 0x12e)
-#define ALT_APPS              (KEY_OFFSET + 0x12f)
+#define KEY_PAUSE             (KEY_OFFSET + 0x126)
 
-#define KEY_PAUSE             (KEY_OFFSET + 0x130)
-#define KEY_SPAUSE            (KEY_OFFSET + 0x131)
-#define CTL_PAUSE             (KEY_OFFSET + 0x132)
+#define KEY_PRINTSCREEN       (KEY_OFFSET + 0x127)
+#define KEY_SCROLLLOCK        (KEY_OFFSET + 0x128)
 
-#define KEY_PRINTSCREEN       (KEY_OFFSET + 0x133)
-#define ALT_PRINTSCREEN       (KEY_OFFSET + 0x134)
-#define KEY_SCROLLLOCK        (KEY_OFFSET + 0x135)
-#define ALT_SCROLLLOCK        (KEY_OFFSET + 0x136)
-
-#define CTL_0                 (KEY_OFFSET + 0x137)
-#define CTL_1                 (KEY_OFFSET + 0x138)
-#define CTL_2                 (KEY_OFFSET + 0x139)
-#define CTL_3                 (KEY_OFFSET + 0x13a)
-#define CTL_4                 (KEY_OFFSET + 0x13b)
-#define CTL_5                 (KEY_OFFSET + 0x13c)
-#define CTL_6                 (KEY_OFFSET + 0x13d)
-#define CTL_7                 (KEY_OFFSET + 0x13e)
-#define CTL_8                 (KEY_OFFSET + 0x13f)
-#define CTL_9                 (KEY_OFFSET + 0x140)
-
-#define KEY_BROWSER_BACK      (KEY_OFFSET + 0x141)
-#define KEY_SBROWSER_BACK     (KEY_OFFSET + 0x142)
-#define KEY_CBROWSER_BACK     (KEY_OFFSET + 0x143)
-#define KEY_ABROWSER_BACK     (KEY_OFFSET + 0x144)
-#define KEY_BROWSER_FWD       (KEY_OFFSET + 0x145)
-#define KEY_SBROWSER_FWD      (KEY_OFFSET + 0x146)
-#define KEY_CBROWSER_FWD      (KEY_OFFSET + 0x147)
-#define KEY_ABROWSER_FWD      (KEY_OFFSET + 0x148)
-#define KEY_BROWSER_REF       (KEY_OFFSET + 0x149)
-#define KEY_SBROWSER_REF      (KEY_OFFSET + 0x14A)
-#define KEY_CBROWSER_REF      (KEY_OFFSET + 0x14B)
-#define KEY_ABROWSER_REF      (KEY_OFFSET + 0x14C)
-#define KEY_BROWSER_STOP      (KEY_OFFSET + 0x14D)
-#define KEY_SBROWSER_STOP     (KEY_OFFSET + 0x14E)
-#define KEY_CBROWSER_STOP     (KEY_OFFSET + 0x14F)
-#define KEY_ABROWSER_STOP     (KEY_OFFSET + 0x150)
-#define KEY_SEARCH            (KEY_OFFSET + 0x151)
-#define KEY_SSEARCH           (KEY_OFFSET + 0x152)
-#define KEY_CSEARCH           (KEY_OFFSET + 0x153)
-#define KEY_ASEARCH           (KEY_OFFSET + 0x154)
-#define KEY_FAVORITES         (KEY_OFFSET + 0x155)
-#define KEY_SFAVORITES        (KEY_OFFSET + 0x156)
-#define KEY_CFAVORITES        (KEY_OFFSET + 0x157)
-#define KEY_AFAVORITES        (KEY_OFFSET + 0x158)
-#define KEY_BROWSER_HOME      (KEY_OFFSET + 0x159)
-#define KEY_SBROWSER_HOME     (KEY_OFFSET + 0x15A)
-#define KEY_CBROWSER_HOME     (KEY_OFFSET + 0x15B)
-#define KEY_ABROWSER_HOME     (KEY_OFFSET + 0x15C)
-#define KEY_VOLUME_MUTE       (KEY_OFFSET + 0x15D)
-#define KEY_SVOLUME_MUTE      (KEY_OFFSET + 0x15E)
-#define KEY_CVOLUME_MUTE      (KEY_OFFSET + 0x15F)
-#define KEY_AVOLUME_MUTE      (KEY_OFFSET + 0x160)
-#define KEY_VOLUME_DOWN       (KEY_OFFSET + 0x161)
-#define KEY_SVOLUME_DOWN      (KEY_OFFSET + 0x162)
-#define KEY_CVOLUME_DOWN      (KEY_OFFSET + 0x163)
-#define KEY_AVOLUME_DOWN      (KEY_OFFSET + 0x164)
-#define KEY_VOLUME_UP         (KEY_OFFSET + 0x165)
-#define KEY_SVOLUME_UP        (KEY_OFFSET + 0x166)
-#define KEY_CVOLUME_UP        (KEY_OFFSET + 0x167)
-#define KEY_AVOLUME_UP        (KEY_OFFSET + 0x168)
-#define KEY_NEXT_TRACK        (KEY_OFFSET + 0x169)
-#define KEY_SNEXT_TRACK       (KEY_OFFSET + 0x16A)
-#define KEY_CNEXT_TRACK       (KEY_OFFSET + 0x16B)
-#define KEY_ANEXT_TRACK       (KEY_OFFSET + 0x16C)
-#define KEY_PREV_TRACK        (KEY_OFFSET + 0x16D)
-#define KEY_SPREV_TRACK       (KEY_OFFSET + 0x16E)
-#define KEY_CPREV_TRACK       (KEY_OFFSET + 0x16F)
-#define KEY_APREV_TRACK       (KEY_OFFSET + 0x170)
-#define KEY_MEDIA_STOP        (KEY_OFFSET + 0x171)
-#define KEY_SMEDIA_STOP       (KEY_OFFSET + 0x172)
-#define KEY_CMEDIA_STOP       (KEY_OFFSET + 0x173)
-#define KEY_AMEDIA_STOP       (KEY_OFFSET + 0x174)
-#define KEY_PLAY_PAUSE        (KEY_OFFSET + 0x175)
-#define KEY_SPLAY_PAUSE       (KEY_OFFSET + 0x176)
-#define KEY_CPLAY_PAUSE       (KEY_OFFSET + 0x177)
-#define KEY_APLAY_PAUSE       (KEY_OFFSET + 0x178)
-#define KEY_LAUNCH_MAIL       (KEY_OFFSET + 0x179)
-#define KEY_SLAUNCH_MAIL      (KEY_OFFSET + 0x17A)
-#define KEY_CLAUNCH_MAIL      (KEY_OFFSET + 0x17B)
-#define KEY_ALAUNCH_MAIL      (KEY_OFFSET + 0x17C)
-#define KEY_MEDIA_SELECT      (KEY_OFFSET + 0x17D)
-#define KEY_SMEDIA_SELECT     (KEY_OFFSET + 0x17E)
-#define KEY_CMEDIA_SELECT     (KEY_OFFSET + 0x17F)
-#define KEY_AMEDIA_SELECT     (KEY_OFFSET + 0x180)
-#define KEY_LAUNCH_APP1       (KEY_OFFSET + 0x181)
-#define KEY_SLAUNCH_APP1      (KEY_OFFSET + 0x182)
-#define KEY_CLAUNCH_APP1      (KEY_OFFSET + 0x183)
-#define KEY_ALAUNCH_APP1      (KEY_OFFSET + 0x184)
-#define KEY_LAUNCH_APP2       (KEY_OFFSET + 0x185)
-#define KEY_SLAUNCH_APP2      (KEY_OFFSET + 0x186)
-#define KEY_CLAUNCH_APP2      (KEY_OFFSET + 0x187)
-#define KEY_ALAUNCH_APP2      (KEY_OFFSET + 0x188)
+#define KEY_BROWSER_BACK      (KEY_OFFSET + 0x129)
+#define KEY_BROWSER_FWD       (KEY_OFFSET + 0x12a)
+#define KEY_BROWSER_REF       (KEY_OFFSET + 0x12b)
+#define KEY_BROWSER_STOP      (KEY_OFFSET + 0x12c)
+#define KEY_SEARCH            (KEY_OFFSET + 0x12d)
+#define KEY_FAVORITES         (KEY_OFFSET + 0x12e)
+#define KEY_BROWSER_HOME      (KEY_OFFSET + 0x12f)
+#define KEY_VOLUME_MUTE       (KEY_OFFSET + 0x130)
+#define KEY_VOLUME_DOWN       (KEY_OFFSET + 0x131)
+#define KEY_VOLUME_UP         (KEY_OFFSET + 0x132)
+#define KEY_NEXT_TRACK        (KEY_OFFSET + 0x133)
+#define KEY_PREV_TRACK        (KEY_OFFSET + 0x134)
+#define KEY_MEDIA_STOP        (KEY_OFFSET + 0x135)
+#define KEY_PLAY_PAUSE        (KEY_OFFSET + 0x136)
+#define KEY_LAUNCH_MAIL       (KEY_OFFSET + 0x137)
+#define KEY_MEDIA_SELECT      (KEY_OFFSET + 0x138)
+#define KEY_LAUNCH_APP1       (KEY_OFFSET + 0x139)
+#define KEY_LAUNCH_APP2       (KEY_OFFSET + 0x13a)
+#define KEY_LAUNCH_APP3       (KEY_OFFSET + 0x13b)
+#define KEY_LAUNCH_APP4       (KEY_OFFSET + 0x13c)
+#define KEY_LAUNCH_APP5       (KEY_OFFSET + 0x13d)
+#define KEY_LAUNCH_APP6       (KEY_OFFSET + 0x13e)
+#define KEY_LAUNCH_APP7       (KEY_OFFSET + 0x13f)
+#define KEY_LAUNCH_APP8       (KEY_OFFSET + 0x140)
+#define KEY_LAUNCH_APP9       (KEY_OFFSET + 0x141)
+#define KEY_LAUNCH_APP10      (KEY_OFFSET + 0x142)
 
 #define KEY_MIN       KEY_BREAK         /* Minimum curses key value */
-#define KEY_MAX       KEY_ALAUNCH_APP2  /* Maximum curses key */
+#define KEY_MAX       KEY_LAUNCH_APP10  /* Maximum curses key */
 
 #define KEY_F(n)      (KEY_F0 + (n))
 

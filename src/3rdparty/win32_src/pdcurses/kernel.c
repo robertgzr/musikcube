@@ -115,7 +115,10 @@ static int _restore_mode(int i)
 {
     if (ctty[i].been_set == TRUE)
     {
+        PDC_PAIR *atrtab = SP->atrtab;
+
         memcpy(SP, &(ctty[i].saved), sizeof(SCREEN));
+        SP->atrtab = atrtab;
 
         if (ctty[i].saved.raw_out)
             raw();
@@ -268,6 +271,7 @@ int ripoffline(int line, int (*init)(WINDOW *, int))
 {
     PDC_LOG(("ripoffline() - called: line=%d\n", line));
 
+    assert( init);
     if (linesrippedoff < 5 && line && init)
     {
         linesripped[(int)linesrippedoff].line = line;

@@ -6,6 +6,8 @@
 void PDC_set_keyboard_binary(bool on)
 {
     PDC_LOG(("PDC_set_keyboard_binary() - called\n"));
+
+    INTENTIONALLY_UNUSED_PARAMETER( on);
 }
 
 /* check if a key or mouse event is waiting */
@@ -15,18 +17,14 @@ void PDC_set_keyboard_binary(bool on)
 extern int PDC_key_queue_low, PDC_key_queue_high;
 extern int PDC_key_queue[KEY_QUEUE_SIZE];
 
-/* PDCurses message/event callback */
-/* Calling PDC_napms for one millisecond ensures that the message loop */
-/* is called and messages in general,  and keyboard events in particular, */
-/* get processed.   */
-
 bool PDC_check_key(void)
 {
-    PDC_napms( 1);
     if( PDC_key_queue_low != PDC_key_queue_high)
         return TRUE;
     return FALSE;
 }
+
+int PDC_get_mouse_event_from_queue( void);     /* pdcscrn.c */
 
 /* return the next available key or mouse event */
 
@@ -47,6 +45,8 @@ int PDC_get_key(void)
                 if( PDC_key_queue_low == KEY_QUEUE_SIZE)
                     PDC_key_queue_low = 0;
             }
+         if( rval == KEY_MOUSE)
+            PDC_get_mouse_event_from_queue( );
     }
     SP->key_code = (rval >= KEY_MIN && rval <= KEY_MAX);
     return rval;
@@ -59,6 +59,8 @@ void PDC_flushinp(void)
 {
     PDC_LOG(("PDC_flushinp() - called\n"));
     PDC_key_queue_low = PDC_key_queue_high = 0;
+    while( !PDC_get_mouse_event_from_queue( ))
+        ;
 }
 
 bool PDC_has_mouse( void)

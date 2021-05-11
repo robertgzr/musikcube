@@ -107,7 +107,15 @@ static LPTOP_LEVEL_EXCEPTION_FILTER xcpt_filter;
 
 static DWORD old_console_mode = 0;
 
-static bool is_nt;
+/* MSVC++ 7.1 was the last version to support Win95/98/ME.  If we're
+on any MSVC after that (_MSC_VER > 1310),  is_nt is going to be true
+no matter what.  */
+
+#if defined(_MSC_VER) && _MSC_VER > 1310
+   const bool is_nt = TRUE;
+#else
+   static bool is_nt;
+#endif
 
 static void _reset_old_colors(void)
 {
@@ -319,6 +327,7 @@ static LONG WINAPI _restore_console(LPEXCEPTION_POINTERS ep)
 {
     PDC_scr_close();
 
+    INTENTIONALLY_UNUSED_PARAMETER( ep);
     return EXCEPTION_CONTINUE_SEARCH;
 }
 
@@ -402,7 +411,9 @@ int PDC_scr_open(void)
         exit(1);
     }
 
+#if !defined(_MSC_VER) || _MSC_VER <= 1310
     is_nt = !(GetVersion() & 0x80000000);
+#endif
 
     str = getenv("ConEmuANSI");
     pdc_conemu = !!str;
@@ -518,8 +529,12 @@ int PDC_resize_screen(int nlines, int ncols)
 {
     SMALL_RECT rect;
     COORD size, max;
+    const bool prog_resize = nlines || ncols;
 
-    bool prog_resize = nlines || ncols;
+    if( !stdscr)     /* We're trying to specify an initial screen size */
+    {                /* before calling initscr().  This works on some  */
+        return OK;   /* some platforms,  but not on this one (yet).    */
+    }
 
     if (!prog_resize)
     {
@@ -608,10 +623,12 @@ void PDC_reset_shell_mode(void)
 
 void PDC_restore_screen_mode(int i)
 {
+    INTENTIONALLY_UNUSED_PARAMETER( i);
 }
 
 void PDC_save_screen_mode(int i)
 {
+    INTENTIONALLY_UNUSED_PARAMETER( i);
 }
 
 bool PDC_can_change_color(void)
@@ -693,6 +710,10 @@ without this,  we get an unresolved external... */
 void PDC_set_resize_limits( const int new_min_lines, const int new_max_lines,
                   const int new_min_cols, const int new_max_cols)
 {
+    INTENTIONALLY_UNUSED_PARAMETER( new_min_lines);
+    INTENTIONALLY_UNUSED_PARAMETER( new_max_lines);
+    INTENTIONALLY_UNUSED_PARAMETER( new_min_cols);
+    INTENTIONALLY_UNUSED_PARAMETER( new_max_cols);
 }
 
 /* PDC_set_function_key() does nothing on this platform */

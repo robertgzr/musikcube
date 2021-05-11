@@ -128,8 +128,8 @@ addch
  * int argument instead of wchar_t,  because in MS-land, wchar_t
  * is 16 bits;  getting the full Unicode range requires 21 bits.
  * Also modified format/indenting to conform to PDCurses norms.
- * NOTE that this version is current only to Unicode 5.0!  Some
- * updates are almost certainly needed...
+ * NOTE that this version is current only to Unicode 5.0!  Updates
+ * could use https://unicode.org/Public/UNIDATA/EastAsianWidth.txt .
  */
 
 struct interval
@@ -645,6 +645,7 @@ int wadd_wch(WINDOW *win, const cchar_t *wch)
 {
     PDC_LOG(("wadd_wch() - called: win=%p wch=%x\n", win, *wch));
 
+    assert( wch);
     return wch ? waddch(win, *wch) : ERR;
 }
 
@@ -687,6 +688,7 @@ int wecho_wchar(WINDOW *win, const cchar_t *wch)
 {
     PDC_LOG(("wecho_wchar() - called: win=%p wch=%x\n", win, *wch));
 
+    assert( wch);
     if (!wch || (wadd_wch(win, wch) == ERR))
         return ERR;
 

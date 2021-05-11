@@ -384,7 +384,7 @@ int wgetch(WINDOW *win)
     {
         /* is there a keystroke ready? */
 
-        if (!PDC_check_key())
+        while( !PDC_check_key())
         {
             /* if not, handle timeout() and halfdelay() */
             int nap_time = 50;
@@ -398,7 +398,6 @@ int wgetch(WINDOW *win)
                 remaining_millisecs -= nap_time;
             }
             napms( nap_time);
-            continue;   /* then check again */
         }
 
         /* if there is, fetch it */
@@ -407,7 +406,9 @@ int wgetch(WINDOW *win)
 
         /* copy or paste? */
 
+#ifndef _WIN32
         if (SP->key_modifiers & PDC_KEY_MODIFIER_SHIFT)
+#endif
         {
             if (0x03 == key)
             {
@@ -529,7 +530,7 @@ unsigned long PDC_get_key_modifiers(void)
 
     assert( SP);
     if (!SP)
-        return ERR;
+        return (unsigned long)ERR;
 
     return SP->key_modifiers;
 }
@@ -553,6 +554,7 @@ int wget_wch(WINDOW *win, wint_t *wch)
 
     PDC_LOG(("wget_wch() - called\n"));
 
+    assert( wch);
     if (!wch)
         return ERR;
 
@@ -561,7 +563,7 @@ int wget_wch(WINDOW *win, wint_t *wch)
     if (key == ERR)
         return ERR;
 
-    *wch = key;
+    *wch = (wint_t)key;
 
     return SP->key_code ? KEY_CODE_YES : OK;
 }
