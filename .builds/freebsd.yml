@@ -1,0 +1,26 @@
+
+image: freebsd/12.x
+
+packages:
+- cmake
+- ninja
+- boost-libs
+- libev
+- lame
+- ffmpeg
+- libmicrohttpd
+- taglib
+- sndio
+
+sources:
+- https://github.com/clangen/musikcube
+
+environment:
+ CMAKE_EXTRA_FLAGS: "-DENABLE_BUNDLED_TAGLIB=false"
+
+tasks:
+- build: |
+    mkdir musikcube/build
+    cd musikcube/build
+    cmake -G Ninja $CMAKE_EXTRA_FLAGS ..
+    cmake --build .

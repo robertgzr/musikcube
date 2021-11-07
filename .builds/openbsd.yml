@@ -1,0 +1,25 @@
+
+image: openbsd/6.9
+
+packages:
+- cmake
+- ninja
+- boost
+- libev
+- lame
+- ffmpeg
+- libmicrohttpd
+- taglib
+
+sources:
+- https://github.com/clangen/musikcube
+
+environment:
+ CMAKE_EXTRA_FLAGS: "-DENABLE_BUNDLED_TAGLIB=false"
+
+tasks:
+- build: |
+    mkdir musikcube/build
+    cd musikcube/build
+    cmake -G Ninja $CMAKE_EXTRA_FLAGS ..
+    cmake --build .
